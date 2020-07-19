@@ -8,10 +8,10 @@ This project uses ROS as a way of communication between the three modules.
 
 ## Test
 ### The project was optimized and tested on this system:
-Computer Vision:
+1. Computer Vision:
 - Raspberry Pi 4 (4 GB)
-Navigation:
+2. Navigation:
 - BerryGPS-IMU V3
-Obstacle Detection:
+3. Obstacle Detection:
 - RPLiDAR A1
 The Computer Vision device can be changed given that the replacement can be interfaced with the two other modules and has OpenCV and ROS installed.
