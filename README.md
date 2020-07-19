@@ -7,7 +7,7 @@ The CV Module is written in C++ because it is much faster than Python in process
 This project uses ROS as a way of communication between the three modules.
 
 ## Test
-###The project was optimized and tested on this system:
+### The project was optimized and tested on this system:
 Computer Vision:
 - Raspberry Pi 4 (4 GB)
 Navigation:
