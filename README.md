@@ -7,4 +7,11 @@ The CV Module is written in C++ because it is much faster than Python in process
 This project uses ROS as a way of communication between the three modules.
 
 ## Test
-The project was optimized and tested on a Raspberry Pi 4 (4 GB). But it should work on any system with OpenCV and ROS installed.
+###The project was optimized and tested on this system:
+Computer Vision:
+- Raspberry Pi 4 (4 GB)
+Navigation:
+- BerryGPS-IMU V3
+Obstacle Detection:
+- RPLiDAR A1
+The Computer Vision device can be changed given that the replacement can be interfaced with the two other modules and has OpenCV and ROS installed.
