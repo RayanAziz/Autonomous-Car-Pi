@@ -33,10 +33,10 @@ void detectorSigns()
 	HOGDescriptor hogStop;
 	HOGDescriptor hog120;
 	HOGDescriptor hog80;
-	hogSigns.load("signs.yml");
-	hogStop.load("stop.yml");
-	hog120.load("120.yml");
-	hog80.load("80.yml");
+	hogSigns.load("models/signs.yml");
+	hogStop.load("models/stop.yml");
+	hog120.load("models/120.yml");
+	hog80.load("models/80.yml");
 	int counters[4];
 	int largest_counter = 0;
 	int this_sign; 
