@@ -14,7 +14,7 @@ using namespace std;
 using namespace std::chrono;
 
 std_msgs::String msg;
-std::stringstream signSpeed;
+std::stringstream sign_speed;
 ros::Publisher chatter_pub;
 
 int counter_stop = 0;
