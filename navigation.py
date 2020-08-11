@@ -11,16 +11,32 @@ from sensor_msgs.msg import NavSatFix, Imu, MagneticField
 from std_msgs.msg import String
 import socket
 
-# Global Variables
-#accX = accY = accZ = 0.0
-#magX = magY = magZ = 0.0
-#gpsHeading = imuHeading = 0
 lidarReading = ""
 cvReading = ""
-
-destCoordinate = (21.496563, 39.244051) # Destination example
-
 port = "/dev/serial0"
+
+destCoordinates_list = [(21.4984701, 39.2489091), 
+                        (21.4984339, 39.248661),
+                        (21.4983865, 39.2483566),
+                        (21.4983491, 39.2481098)]
+
+
+destCoordinates_list = [(21.4988116, 39.2486381)]
+
+destCoordinates_list = [(21.4991822, 39.2485657)]
+
+
+destCoordinates_list = [(21.4990084, 39.2486005), 
+                        (21.4990496, 39.2489103)]
+
+
+
+destCoordinate = destCoordinates_list[0] # init to first point
+currentCoordinate = [0, 0]
+
+
+cRadius = 5 # radius of the circle
+
 
 IMU_UPSIDE_DOWN = 0
 M_PI = 3.14159265358979323846
@@ -32,6 +48,34 @@ magZmin =  -745
 magXmax =  2473
 magYmax =  1252
 magZmax =  1399
+
+
+# This function return the distance in meters between two coordinates.
+def getDistance(p1, p2):
+    earthR = 6371 # earth radius (km)
+
+    lat1, lon1 = p1
+    lat2, lon2 = p2
+
+    dLat = math.radians(lat2-lat1)
+    dLon = math.radians(lon2-lon1)
+
+    lat1 = math.radians(lat1)
+    lat2 = math.radians(lat2)
+
+    a = math.sin(dLat/2) ** 2 + math.sin(dLon/2) ** 2 * math.cos(lat1) * math.cos(lat2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    return int(earthR * c * 1000)
+    
+
+def isInsideCircle(destPoint):
+    global currentCoordinate
+    dist = getDistance(currentCoordinate, destPoint)
+    result = dist <= cRadius
+
+    #print("The distance differance is: %d - Inside? %s" %(dist, result))
+    return result
 
 
 def calc_IMU_Heading():
@@ -92,6 +136,8 @@ def calc_IMU_Heading():
     return(int(tiltCompensatedHeading))
 
 def parseGPS(data):
+    global currentCoordinate
+    
     #print ("raw:", str(data[0:6])) #prints raw data
     if data[0:6].decode("utf-8") == "$GNRMC" :
         sdata = data.decode("utf-8").split(",")
@@ -112,7 +158,11 @@ def parseGPS(data):
         
         #print ("Start (GPS)         - latitude : %s(%s), longitude : %s(%s)" %(lat,dirLat,lon,dirLon,))
         #print ("Destination (Fixed) - latitude : 21.495202(N), longitude : 39.244551(E)")
-        return(int(heading(latH, dirLat, lonH, dirLon, 21.496563,  39.244051)))
+        
+        currentCoordinate[0] = float(lat)
+        currentCoordinate[1] = float(lon)
+        
+        return(int(heading(latH, dirLat, lonH, dirLon, destCoordinate[0],  destCoordinate[1])))
 
 def heading(startLat, latDir, startLon, lonDir, destLat, destLon):
     aLat = startLat.split(".")
@@ -176,8 +226,12 @@ def callback2(data):
         cvReading = "80"
     elif '"40"' in str(data):
         cvReading = "40"
+    else:
+        cvReading = "40"
 
 def navControl():
+    global destCoordinate
+    
     # Node Initilization
     rospy.init_node('motorCMD', anonymous=True)
     
@@ -193,12 +247,15 @@ def navControl():
     # Init motorController vars
     var1 = b'\x24'
     var2 = b'\x02'
+    
     lm_speed = b'\x00'
-    lm_dir = b'\x00'
+    lm_dir = b'\x02' # Fixed to forward
     rm_speed = b'\x00'
-    rm_dir = b'\x00'
-    s_speed = b'\x66' # Fixed speed
+    rm_dir = b'\x02' # Fixed to forward
+    s_speed = b'\x00' 
     s_dir = b'\x00'
+    
+    dest_ptr = 0 # list index
     
     host = "192.168.4.1"
     port = 8000
@@ -218,28 +275,41 @@ def navControl():
         
         gpsHeading = parseGPS(data)
 
-        print(gpsHeading)
-        # gpsHeading = 90 # Testing: east
-        theta = abs(imuHeading - gpsHeading)
+        #print(gpsHeading)
+        #gpsHeading = 90 # Testing: east
                 
         directionCommand = speedCommand = ""
         command = ""
-        
-        if imuHeading >= gpsHeading and theta < 180:
-            directionCommand = "CCW"
+
+        if ((gpsHeading - imuHeading + 360) % 360 < 180):
+            # CW
+            s_dir = b'\x03' # CW 
+            angle = (gpsHeading - imuHeading + 360) % 360
+            #speed = (((angle - 0) * (255 - 70)) / (179 - 0)) + 70
+            speed = 75 + angle * 2
+            if speed > 255: speed = 255
+            if angle < 5: speed = 0
+            s_speed = b''.join(bytes(hex(int(speed))[2:].zfill(2).decode("hex")))
+        else:
+            # CCW
             s_dir = '\x02' # CCW
-        elif imuHeading >= gpsHeading and theta >= 180:
-            directionCommand = "CW"
-            s_dir = b'\x03' # CW
-        elif imuHeading <= gpsHeading and theta < 180:
-            directionCommand = "CW"
-            s_dir = b'\x03' # CW
-        elif imuHeading <= gpsHeading and theta >= 180:
-            directionCommand = "CCW"
-            s_dir = '\x02' # CCW
+            angle = (imuHeading - gpsHeading + 360) % 360
+            #speed = (((angle - 0) * (255 - 70)) / (180 - 0)) + 70
+            speed = 75 + angle * 2
+            if speed > 255: speed = 255
+            if angle < 5: speed = 0
+            s_speed = b''.join(bytes(hex(int(speed))[2:].zfill(2).decode("hex")))
+
+
+        #lm_speed = b'\x7F'
+        #lm_dir = b'\x02'
+        #rm_speed = b'\x7F'
+        #rm_dir = b'\x02'
 
         if (lidarReading == "Stop" or cvReading == "0"):
             speedCommand = "0"
+            lm_speed = b'\x00'
+            rm_speed = b'\x00'
         else:
             speedCommand = cvReading
             if (cvReading == "120"):
@@ -249,22 +319,36 @@ def navControl():
                 lm_speed = b'\x80'
                 rm_speed = b'\x80'
             elif (cvReading == "40"):
-                lm_speed = b'\x40'
-                rm_speed = b'\x40'
+                lm_speed = b'\x60'
+                rm_speed = b'\x60'
         
-        lm_speed = b'\x7F'
-        lm_dir = b'\x02'
-        rm_speed = b'\x7F'
-        rm_dir = b'\x02'
+        if isInsideCircle(destCoordinates_list[dest_ptr]):
+            if dest_ptr < len(destCoordinates_list) - 1:
+                print("\nCoordinates #%d Reached\n" %(dest_ptr+1))
+                dest_ptr = dest_ptr + 1
+                destCoordinate[0] = destCoordinates_list[dest_ptr][0]
+                destCoordinate[1] = destCoordinates_list[dest_ptr][1]
+            else:
+                print("\nFinal Destination Reached !")
+                # Send STOP signals for speed motors & dir motor
+                lm_speed = b'\x00'
+                rm_speed = b'\x00'
+                s_dir = b'\x00'
+                break
+        
+        #lm_speed = b'\xE7'
+        #lm_dir = b'\x02'
+        #rm_speed = b'\xE7'
+        #rm_dir = b'\x02'
         
         command = directionCommand + " - " + speedCommand
-        command = b''.join([var1, var2, rm_speed, rm_dir, lm_speed, lm_dir, s_speed, s_dir])
-        s.send(command)
+        commandTCP = b''.join([var1, var2, rm_speed, rm_dir, lm_speed, lm_dir, s_speed, s_dir])
+        s.send(commandTCP)
         
-        print("GPS Heading: %d" % int(gpsHeading))
-        print("IMU Heading: %d" % int(imuHeading))
-        print("\t-> Direction  : %s" % directionCommand)
-        print("\t-> Speed      : %s\n" % speedCommand)
+        #print("GPS Heading: %d" % int(gpsHeading))
+        #print("IMU Heading: %d" % int(imuHeading))
+        #print("\t-> Direction  : %s" % directionCommand)
+        #print("\t-> Speed      : %s\n" % speedCommand)
         pub.publish(command)
         
         rate.sleep()
