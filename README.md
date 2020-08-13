@@ -1,6 +1,6 @@
 # Autonomous Car Navigation &amp; Control through Computer Vision and Sensor Fusion
 
-### By: Rayan Gary / Yazeed Al-malki / Ayman Bashammakh
+### Team: Rayan Gary (Computer Vision) / Yazeed Al-malki (Obstacle Detection) / Ayman Bashammakh (Navigation & Control)
 ### Advisor: Mohammad Bilal
 
 ## Description
