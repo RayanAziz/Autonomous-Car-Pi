@@ -58,13 +58,13 @@ void detectorSigns()
 
 	int delay = 0;
 
-	// high_resolution_clock::time_point counter = high_resolution_clock::now();
+	high_resolution_clock::time_point counter = high_resolution_clock::now();
 
 	// Loop through the frames
 	for (size_t i = 0;; i++)
 	{
 		// Timer start for FPS calculation
-		// high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		Mat full_frame;
 		Mat cropped;
 		Mat sign;
@@ -243,10 +243,10 @@ void detectorSigns()
 		2,	// Scale. 2.0 = 2x bigger
 		cv::Scalar(255, 0, 255));
 		// Timer calculations and output
-		// cout << std::endl;
-		// high_resolution_clock::time_point t2 = high_resolution_clock::now();
-		// duration<double> time_span = duration_cast<duration < double>> (t2 - t1);
-		// cout << "FPS: " << 1/time_span.count() << endl;
+		cout << std::endl;
+		high_resolution_clock::time_point t2 = high_resolution_clock::now();
+		duration<double> time_span = duration_cast<duration < double>> (t2 - t1);
+		cout << "FPS: " << 1/time_span.count() << endl;
 
 		// Write frame to video
 		video.write(full_frame);
