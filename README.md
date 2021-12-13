@@ -1,6 +1,6 @@
-# Autonomous Car Navigation &amp; Control through Computer Vision and Sensor Fusion
+# Autonomous Car Navigation & Control through Computer Vision and Sensor Fusion
 
-### Team: Rayan Gary (Computer Vision) / Yazeed Al-malki (Obstacle Detection) / Ayman Bashammakh (Navigation & Control)
+### Team: Rayan Aziz (Computer Vision) / Yazeed Al-malki (Obstacle Detection) / Ayman Bashammakh (Navigation & Control)
 ### Advisor: Mohammad Bilal
 
 ## Description
@@ -11,7 +11,7 @@ The CV Module is written in C++ because it is much faster than Python in process
 This project uses ROS as a way of communication between the three modules.
 
 ## Test
-### The project was optimized and tested on this system:
+### The project was optimized and tested on the following system:
 1. Computer Vision:
    - Raspberry Pi 4 (4 GB)
    - Raspberry Pi Camera Module V2
