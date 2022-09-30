@@ -1,4 +1,4 @@
-# Autonomous Car Navigation & Control through Computer Vision and Sensor Fusion
+# Autonomous Car Navigation & Control Through Computer Vision and Sensor Fusion
 
 ### Team: Rayan Aziz (Computer Vision) / Yazeed Al-malki (Obstacle Detection) / Ayman Bashammakh (Navigation & Control)
 ### Advisor: Mohammad Bilal
